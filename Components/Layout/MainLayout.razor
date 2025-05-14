@@ -1,15 +1,22 @@
-﻿@inherits LayoutComponentBase
+﻿@using YumBlazor.Utility
+@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    @* <AutorizeView Roles="@SD.Role_Customer">
+    Customer
+    </AutorizeView> *@
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    <AutorizeView Roles="@SD.Role_Admin">
+        <div class="sidebar">
+            <NavMenu />
         </div>
-
+    </AutorizeView>
+    <main>
+        @if (_navBarvisible)
+        {
+            <Navbar></Navbar>
+        } 
         <article class="content px-4">
             @Body
         </article>
@@ -21,3 +28,30 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private bool _navBarvisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _navBarvisible = await ShowNavBar();
+    }
+
+    private async Task<bool> ShowNavBar()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        // var authenticated = user.Identity is not null && user.Identity.IsAuthenticated;
+        // if (authenticated)
+        // {
+        //     return true;
+        // }
+
+        if (user.IsInRole(SD.Role_Admin))
+        {
+            return true;
+        }
+
+        return false;
+    }
+}
